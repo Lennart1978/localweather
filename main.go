@@ -62,17 +62,15 @@ func main() {
 	w.CenterOnScreen()
 
 	// Labels fo 7 days
-	var labelDate, labelMinTemp, labelMaxTemp, labelRain, labelWeather, labelCity, labelCountry [7]*widget.Label
+	var labelDate, labelTempMinMax, labelRain, labelWeather, labelCity, labelCountry [7]*widget.Label
 
 	for day := 0; day < 7; day++ {
 		labelDate[day] = widget.NewLabel(weather.localDateEu[day])
 		labelDate[day].Alignment = fyne.TextAlignCenter
 		labelDate[day].TextStyle = fyne.TextStyle{Bold: true}
-		labelMinTemp[day] = widget.NewLabel(fmt.Sprintf("minimum temp.:%.1f°", weather.Daily.Temperature2MMin[day]))
-		labelMinTemp[day].Alignment = fyne.TextAlignCenter
-		labelMaxTemp[day] = widget.NewLabel(fmt.Sprintf("maximum temp.:%.1f°", weather.Daily.Temperature2MMax[day]))
-		labelMaxTemp[day].Alignment = fyne.TextAlignCenter
-		labelRain[day] = widget.NewLabel(fmt.Sprintf("Regenwahrscheinlichkeit :%d%%", weather.Daily.PrecipitationProbabilityMean[day]))
+		labelTempMinMax[day] = widget.NewLabel(fmt.Sprintf("min/max Temperatur : %.1f° / %.1f°", weather.Daily.Temperature2MMin[day], weather.Daily.Temperature2MMax[day]))
+		labelTempMinMax[day].Alignment = fyne.TextAlignCenter
+		labelRain[day] = widget.NewLabel(fmt.Sprintf("Regenwahrscheinlichkeit : %d%%", weather.Daily.PrecipitationProbabilityMean[day]))
 		labelRain[day].Alignment = fyne.TextAlignCenter
 		labelWeather[day] = widget.NewLabel(weather.weather[day])
 		labelWeather[day].Alignment = fyne.TextAlignCenter
@@ -81,18 +79,26 @@ func main() {
 		labelCountry[day] = widget.NewLabel(fmt.Sprintf("Land: %s", weather.location.CountryName))
 		labelCountry[day].Alignment = fyne.TextAlignCenter
 	}
-
+	// Label space
+	labelSpace := widget.NewLabel("           ")
 	// Buttons
 	buttonNext := widget.NewButtonWithIcon("          ", theme.NewThemedResource(theme.MediaFastForwardIcon()), func() {})
 	buttonPrevious := widget.NewButtonWithIcon("          ", theme.NewThemedResource(theme.MediaFastRewindIcon()), func() {})
-	buttonHelp := widget.NewButtonWithIcon("          ", theme.NewThemedResource(theme.HelpIcon()), func() {})
+	buttonHelp := widget.NewButtonWithIcon("    ", theme.NewThemedResource(theme.HelpIcon()), func() {})
+
+	// Progress bars for 7 days
+	var progressRain [7]*widget.ProgressBar
+	for day := 0; day < 7; day++ {
+		progressRain[day] = widget.NewProgressBar()
+		progressRain[day].SetValue(float64(weather.Daily.PrecipitationProbabilityMean[day]) / 100)
+	}
 
 	// Containers for 7 days
 	var vBox []*fyne.Container
 	var hBoxDateButtons []*fyne.Container
 	for day := 0; day < 7; day++ {
-		hBoxDateButtons = append(hBoxDateButtons, container.NewHBox(buttonPrevious, labelDate[day], buttonNext))
-		vBox = append(vBox, container.NewVBox(hBoxDateButtons[day], labelMinTemp[day], labelMaxTemp[day], labelRain[day], labelWeather[day], getWeatherImg(day), labelCity[day], labelCountry[day]))
+		hBoxDateButtons = append(hBoxDateButtons, container.NewHBox(labelSpace, buttonPrevious, labelDate[day], buttonNext))
+		vBox = append(vBox, container.NewVBox(hBoxDateButtons[day], labelTempMinMax[day], labelRain[day], progressRain[day], labelWeather[day], getWeatherImg(day), labelCity[day], labelCountry[day]))
 	}
 
 	hBoxDateButtons[0].Add(buttonHelp)
